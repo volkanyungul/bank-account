@@ -1,40 +1,40 @@
 package com.volkanyungul.bank_account.producer.generator;
 
+import com.volkanyungul.bank_account.events.TransactionCreatedEvent;
 import com.volkanyungul.bank_account.producer.dto.Range;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Slf4j
+@AllArgsConstructor
 public class RandomTransactionGenerator implements TransactionGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(RandomTransactionGenerator.class);
 
     private final TransactionType transactionType;
     private final Range range;
-
-    public RandomTransactionGenerator(TransactionType transactionType, Range range) {
-        this.transactionType = transactionType;
-        this.range = range;
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public List<Transaction> generate(int numberOfTransactions) {
+    public void generate(int numberOfTransactions) {
         logger.info("transactionType: {}, range:{}, numberOfTransactions: {}", transactionType, range, numberOfTransactions);
-        Transaction transaction = new Transaction(generateId(), generateRandomAmount(range), transactionType);
-        logger.info("transaction: {}", transaction);
-        return IntStream.range(0, numberOfTransactions)
-                        .mapToObj(i -> transaction)
-                        .toList();
+        IntStream.range(0, numberOfTransactions)
+                .forEach(i -> {
+                    Transaction transaction = Transaction.builder().id(generateId()).amount(generateRandomAmount(range)).transactionType(transactionType).build();
+                    applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction));
+                    logger.info("Transaction Published: {}" , transaction);
+                });
     }
 
     private String generateId() {
