@@ -5,6 +5,7 @@ import com.volkanyungul.bank_account.producer.dto.Range;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RandomTransactionGenerator implements TransactionGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(RandomTransactionGenerator.class);

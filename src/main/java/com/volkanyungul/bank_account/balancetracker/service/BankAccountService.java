@@ -1,4 +1,4 @@
-package com.volkanyungul.bank_account.balancetracker;
+package com.volkanyungul.bank_account.balancetracker.service;
 
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 
