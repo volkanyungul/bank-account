@@ -1,5 +1,5 @@
 package com.volkanyungul.bank_account.producer.scheduler;
 
-public interface Scheduler {
+public interface TransactionScheduler {
     void schedule();
 }

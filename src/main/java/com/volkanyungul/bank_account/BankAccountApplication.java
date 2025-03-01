@@ -1,13 +1,14 @@
 package com.volkanyungul.bank_account;
 
+import com.volkanyungul.bank_account.producer.config.ProducerProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling
 @EnableAsync
+@EnableConfigurationProperties(ProducerProperties.class)
 public class BankAccountApplication {
 
 	public static void main(String[] args) {

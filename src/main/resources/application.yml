@@ -1,5 +1,12 @@
 producer:
-  transactionCountPerSecond: 50
-  transactionAmountRange:
-    from: 200
-    to: 500000
+  transactionTypeConfigMap:
+    debit:
+      transactionCountPerSecond: 1
+      transactionAmountRange:
+        from: -500000
+        to: -200
+    credit:
+      transactionCountPerSecond: 1
+      transactionAmountRange:
+        from: 200
+        to: 500000
