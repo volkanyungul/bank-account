@@ -4,7 +4,6 @@ import com.volkanyungul.bank_account.events.TransactionCreatedEvent;
 import com.volkanyungul.bank_account.producer.dto.Range;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -15,7 +14,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
+import static com.volkanyungul.bank_account.producer.dto.TransactionType.CREDIT;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,9 +29,9 @@ public class RandomTransactionGenerator implements TransactionGenerator {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public void generate(int numberOfTransactions) {
+    public void generate(long numberOfTransactions) {
         logger.info("transactionType: {}, range:{}, numberOfTransactions: {}", transactionType, range, numberOfTransactions);
-        IntStream.range(0, numberOfTransactions)
+        LongStream.range(0, numberOfTransactions)
                 .forEach(i -> {
                     Transaction transaction = Transaction.builder().id(generateId()).amount(generateRandomAmount(range)).transactionType(transactionType).build();
                     applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction));
@@ -44,7 +45,7 @@ public class RandomTransactionGenerator implements TransactionGenerator {
 
     private BigDecimal generateRandomAmount(Range range) {
         long random;
-        if(transactionType == TransactionType.CREDIT){
+        if(transactionType == CREDIT){
             random = new Random().nextLong(range.from() * 100, range.to() * 100);
         } else {
             random = new Random().nextLong(-range.to() * 100, -range.from() * 100);

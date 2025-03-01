@@ -1,5 +1,7 @@
 package com.volkanyungul.bank_account.producer.generator.config;
 
+import com.volkanyungul.bank_account.producer.config.ProducerProperties;
+import com.volkanyungul.bank_account.producer.dto.Range;
 import com.volkanyungul.bank_account.producer.generator.TransactionGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,9 +20,14 @@ class GeneratorConfigTest {
     @Mock
     private ApplicationEventPublisher mockApplicationEventPublisher;
 
+    private ProducerProperties producerProperties;
+
     @BeforeEach
     void setUp() {
-        generatorConfig = new GeneratorConfig(mockApplicationEventPublisher);
+        producerProperties = new ProducerProperties();
+        producerProperties.setTransactionAmountRange(new Range(200, 500000));
+        producerProperties.setTransactionCountPerSecond(50);
+        generatorConfig = new GeneratorConfig(mockApplicationEventPublisher, producerProperties);
     }
 
     @Test
