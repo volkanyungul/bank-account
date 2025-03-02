@@ -1,98 +1,83 @@
 package com.volkanyungul.bank_account.producer.generator;
 
-import com.volkanyungul.bank_account.events.TransactionCreatedEvent;
 import com.volkanyungul.bank_account.producer.dto.Range;
+import com.volkanyungul.bank_account.producer.dto.Transaction;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RandomTransactionGeneratorTest {
 
-    private RandomTransactionGenerator creditRandomTransactionGenerator;
-    private RandomTransactionGenerator debitRandomTransactionGenerator;
+    @InjectMocks
+    private RandomTransactionGenerator randomTransactionGenerator;
 
     @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    private Supplier<String> mockIdSupplier;
+
+    @Mock
+    private ThreadLocalRandom mockThreadLocalRandom;
+
+    MockedStatic<ThreadLocalRandom> threadLocalRandomMockedStatic;
 
     @BeforeEach
     void setUp() {
-        creditRandomTransactionGenerator = new RandomTransactionGenerator(TransactionType.CREDIT, new Range(200, 500000), applicationEventPublisher);
-        debitRandomTransactionGenerator = new RandomTransactionGenerator(TransactionType.DEBIT, new Range(200, 500000), applicationEventPublisher);
+        when(mockIdSupplier.get()).thenReturn("debit-123-abc");
+        threadLocalRandomMockedStatic = Mockito.mockStatic(ThreadLocalRandom.class);
+        threadLocalRandomMockedStatic.when(ThreadLocalRandom::current).thenReturn(mockThreadLocalRandom);
+    }
+
+    @AfterEach
+    void close() {
+        threadLocalRandomMockedStatic.close();
     }
 
     @Test
-    void shouldGenerateCreditTransactionsAndPublish() {
+    void shouldGenerateCreditTransaction() {
         // given
+        BigDecimal minThreshold = new BigDecimal("200");
+        BigDecimal maxThreshold = new BigDecimal("500000");
+        when(mockThreadLocalRandom.nextLong(anyLong(), anyLong())).thenReturn(65348L);
         // when
-        creditRandomTransactionGenerator.generate(25);
+        Transaction generatedTransaction = randomTransactionGenerator.generate(TransactionType.CREDIT, new Range(200L, 500000L));
         // then
-        ArgumentCaptor<TransactionCreatedEvent> eventArgumentCaptor = ArgumentCaptor.forClass(TransactionCreatedEvent.class);
-        verify(applicationEventPublisher, times(25)).publishEvent(eventArgumentCaptor.capture());
-
-        for(TransactionCreatedEvent transactionCreatedEvent : eventArgumentCaptor.getAllValues()) {
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(new BigDecimal("200")) >= 0);
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(new BigDecimal("500000")) <= 0);
-            assertEquals(TransactionType.CREDIT, transactionCreatedEvent.getTransaction().transactionType());
-        }
+        assertGeneratedTransaction(generatedTransaction, minThreshold, maxThreshold, TransactionType.CREDIT);
+        assertEquals(new BigDecimal("653.48"), generatedTransaction.amount());
     }
 
     @Test
-    void shouldGenerateDebitTransactionAndPublish() {
+    void shouldGenerateDebitTransaction() {
         // given
+        BigDecimal minThreshold = new BigDecimal("-500000");
+        BigDecimal maxThreshold = new BigDecimal("-200");
+        when(mockThreadLocalRandom.nextLong(anyLong(), anyLong())).thenReturn(-245345L);
         // when
-        debitRandomTransactionGenerator.generate(25);
+        Transaction generatedTransaction = randomTransactionGenerator.generate(TransactionType.DEBIT, new Range(-500000L, -200L));
         // then
-        ArgumentCaptor<TransactionCreatedEvent> eventArgumentCaptor = ArgumentCaptor.forClass(TransactionCreatedEvent.class);
-        verify(applicationEventPublisher, times(25)).publishEvent(eventArgumentCaptor.capture());
-
-        for(TransactionCreatedEvent transactionCreatedEvent : eventArgumentCaptor.getAllValues()) {
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(new BigDecimal("-500000")) >= 0);
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(new BigDecimal("-200")) <= 0);
-            assertEquals(TransactionType.DEBIT, transactionCreatedEvent.getTransaction().transactionType());
-        }
+        assertGeneratedTransaction(generatedTransaction, minThreshold, maxThreshold, TransactionType.DEBIT);
+        assertEquals(new BigDecimal("-2453.45"), generatedTransaction.amount());
     }
 
-    @Test
-    void shouldGenerateIdAndAmountRandomlyForDebitTransaction() {
-        // given
-        // when
-        debitRandomTransactionGenerator.generate(1);
-        // then
-        ArgumentCaptor<TransactionCreatedEvent> eventArgumentCaptor = ArgumentCaptor.forClass(TransactionCreatedEvent.class);
-        verify(applicationEventPublisher, times(1)).publishEvent(eventArgumentCaptor.capture());
-
-        for(TransactionCreatedEvent transactionCreatedEvent : eventArgumentCaptor.getAllValues()) {
-            assertNotNull(transactionCreatedEvent.getTransaction().id());
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(BigDecimal.ZERO) < 0);
-        }
-    }
-
-    @Test
-    void shouldGenerateIdAndAmountRandomlyForCreditTransaction() {
-        // given
-        // when
-        creditRandomTransactionGenerator.generate(1);
-        // then
-        ArgumentCaptor<TransactionCreatedEvent> eventArgumentCaptor = ArgumentCaptor.forClass(TransactionCreatedEvent.class);
-        verify(applicationEventPublisher, times(1)).publishEvent(eventArgumentCaptor.capture());
-
-        for(TransactionCreatedEvent transactionCreatedEvent : eventArgumentCaptor.getAllValues()) {
-            assertNotNull(transactionCreatedEvent.getTransaction().id());
-            assertTrue(transactionCreatedEvent.getTransaction().amount().compareTo(BigDecimal.ZERO) > 0);
-        }
+    private void assertGeneratedTransaction(Transaction generatedTransaction, BigDecimal minThreshold, BigDecimal maxThreshold, TransactionType expectedTransactionType) {
+        BigDecimal generatedAmount = generatedTransaction.amount();
+        assertTrue(generatedAmount.compareTo(minThreshold) >= 0);
+        assertTrue(generatedAmount.compareTo(maxThreshold) <= 0);
+        assertEquals(expectedTransactionType, generatedTransaction.transactionType());
     }
 }

@@ -4,6 +4,7 @@ import com.volkanyungul.bank_account.events.TransactionCreatedEvent;
 import com.volkanyungul.bank_account.producer.config.ProducerProperties;
 import com.volkanyungul.bank_account.producer.generator.TransactionGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,6 +14,7 @@ import java.util.stream.LongStream;
 import static com.volkanyungul.bank_account.producer.dto.TransactionType.DEBIT;
 
 @RequiredArgsConstructor
+@Slf4j
 public class DebitTransactionScheduler implements TransactionScheduler {
 
     private final TransactionGenerator transactionGenerator;
@@ -30,6 +32,8 @@ public class DebitTransactionScheduler implements TransactionScheduler {
             LongStream.range(0, transactionConfig.getTransactionCountPerSecond())
                     .mapToObj(i -> transactionGenerator.generate(DEBIT, transactionConfig.getTransactionAmountRange()))
                     .forEach(transaction -> applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction)));
+            log.info("Transaction Sent: {}", DEBIT);
+
         }, 0L, 1L, TimeUnit.SECONDS);
     }
 }
