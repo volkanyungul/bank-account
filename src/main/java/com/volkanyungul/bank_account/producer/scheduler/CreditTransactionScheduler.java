@@ -32,7 +32,6 @@ public class CreditTransactionScheduler implements TransactionScheduler {
             LongStream.range(0, transactionConfig.getTransactionCountPerSecond())
                     .mapToObj(i -> transactionGenerator.generate(CREDIT, transactionConfig.getTransactionAmountRange()))
                     .forEach(transaction -> applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction)));
-            log.info("Transaction Sent: {}", CREDIT);
         }, 0L, 1L, TimeUnit.SECONDS);
     }
 }

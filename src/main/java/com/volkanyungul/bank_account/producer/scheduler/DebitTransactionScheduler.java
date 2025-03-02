@@ -32,8 +32,6 @@ public class DebitTransactionScheduler implements TransactionScheduler {
             LongStream.range(0, transactionConfig.getTransactionCountPerSecond())
                     .mapToObj(i -> transactionGenerator.generate(DEBIT, transactionConfig.getTransactionAmountRange()))
                     .forEach(transaction -> applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction)));
-            log.info("Transaction Sent: {}", DEBIT);
-
         }, 0L, 1L, TimeUnit.SECONDS);
     }
 }
