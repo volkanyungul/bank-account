@@ -9,10 +9,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ConsoleAuditSubmitter implements AuditSubmitter {
 
+    private final ObjectMapper objectMapper;
+
+    public ConsoleAuditSubmitter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public void submit(AuditSubmission auditSubmission) {
         try {
-            log.info(new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(auditSubmission));
+            log.info(objectMapper.writer().withDefaultPrettyPrinter().writeValueAsString(auditSubmission));
         } catch (Exception e) {
             log.error("Error happened while printing submission", e);
         }

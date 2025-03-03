@@ -5,7 +5,6 @@ import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
-import com.volkanyungul.bank_account.producer.dto.TransactionType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +16,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import static com.volkanyungul.bank_account.producer.dto.TransactionType.CREDIT;
+import static com.volkanyungul.bank_account.producer.dto.TransactionType.DEBIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,47 +32,51 @@ class BatchAuditProcessorTest {
     @Mock
     private ConsoleAuditSubmitter mockConsoleAuditSubmissionService;
 
+    /*
+        Amounts in the transactions are like [9 , 8 , 8 , 5, 3, 2, 2, 1, 1], and totalValueOfAllTransactionsThreshold is 10.
+        It should create batches including below amounts
+        Batch 1 -> [9,1]
+        Batch 2 -> [8,2]
+        Batch 3 -> [8,2]
+        Batch 4 -> [5,3,1]
+        */
     @Test
-    void process() {
+    void shouldSplitTheTransactionsInTheQueueIntoBatches() {
+        // given
         PriorityQueue<Transaction> auditTransactionsPriorityQueue =
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
-
-        // Add transactions to the queue, amounts [9 , 8 , 8 , 5, 3, 2, 2, 1, 1]
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("123").transactionType(TransactionType.CREDIT).amount(new BigDecimal("9")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("456").transactionType(TransactionType.DEBIT).amount(new BigDecimal("-8")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("789").transactionType(TransactionType.CREDIT).amount(new BigDecimal("8")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.DEBIT).amount(new BigDecimal("-5")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.CREDIT).amount(new BigDecimal("3")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.DEBIT).amount(new BigDecimal("-2")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.CREDIT).amount(new BigDecimal("2")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.DEBIT).amount(new BigDecimal("-1")).build());
-        auditTransactionsPriorityQueue.add(Transaction.builder().id("135").transactionType(TransactionType.CREDIT).amount(new BigDecimal("1")).build());
+        auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
         BatchAuditProcessor batchAuditProcessor = new BatchAuditProcessor(mockAuditSystemProperties, mockConsoleAuditSubmissionService);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
-
         // when
         batchAuditProcessor.process(auditTransactionsPriorityQueue);
-
         // then
         ArgumentCaptor<AuditSubmission> auditSubmissionArgumentCaptor = ArgumentCaptor.forClass(AuditSubmission.class);
         verify(mockConsoleAuditSubmissionService, times(1)).submit(auditSubmissionArgumentCaptor.capture());
-        AuditSubmission auditSubmission = auditSubmissionArgumentCaptor.getValue();
-        // Amounts in the transactions are like [9 , 8 , 8 , 5, 3, 2, 2, 1, 1], and totalValueOfAllTransactionsThreshold is 10.
-        // Created batches includes below amounts
-        // Batch 1 -> [9,1]
-        // Batch 2 -> [8,2]
-        // Batch 3 -> [8,2]
-        // Batch 4 -> [5,3,1]
-        List<Batch> batches = auditSubmission.submission().batches();
-        assertEquals(4, batches.size());
-        assertEquals(2, batches.get(0).getCountOfTransactions().intValue());
-        assertEquals(2, batches.get(1).getCountOfTransactions().intValue());
-        assertEquals(2, batches.get(2).getCountOfTransactions().intValue());
-        assertEquals(3, batches.get(3).getCountOfTransactions().intValue());
-        assertEquals(10, batches.get(0).getTotalValueOfAllTransactions().intValue());
-        assertEquals(10, batches.get(1).getTotalValueOfAllTransactions().intValue());
-        assertEquals(10, batches.get(2).getTotalValueOfAllTransactions().intValue());
-        assertEquals(9, batches.get(3).getTotalValueOfAllTransactions().intValue());
+        List<Batch> batches = auditSubmissionArgumentCaptor.getValue().submission().batches();
+        validateBatches(batches);
+    }
+
+    private List<Transaction> createMockTransactions() {
+        return List.of(Transaction.builder().id("123").transactionType(CREDIT).amount(new BigDecimal("9")).build(), Transaction.builder().id("456").transactionType(DEBIT).amount(new BigDecimal("-8")).build(),
+                Transaction.builder().id("789").transactionType(CREDIT).amount(new BigDecimal("8")).build(), Transaction.builder().id("321").transactionType(DEBIT).amount(new BigDecimal("-5")).build(),
+                Transaction.builder().id("654").transactionType(CREDIT).amount(new BigDecimal("3")).build(), Transaction.builder().id("987").transactionType(DEBIT).amount(new BigDecimal("-2")).build(),
+                Transaction.builder().id("135").transactionType(CREDIT).amount(new BigDecimal("2")).build(), Transaction.builder().id("357").transactionType(DEBIT).amount(new BigDecimal("-1")).build(),
+                Transaction.builder().id("579").transactionType(CREDIT).amount(new BigDecimal("1")).build());
+    }
+
+    private static void validateBatches(List<Batch> batches) {
+        // validate transaction counts
+        assertEquals(4L, batches.size());
+        assertEquals(2L, batches.get(0).getCountOfTransactions());
+        assertEquals(2L, batches.get(1).getCountOfTransactions());
+        assertEquals(2L, batches.get(2).getCountOfTransactions());
+        assertEquals(3L, batches.get(3).getCountOfTransactions());
+        // validate total value of all transactions in a batch
+        assertEquals(0, new BigDecimal("10").compareTo(batches.get(0).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("10").compareTo(batches.get(1).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("10").compareTo(batches.get(2).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("9").compareTo(batches.get(3).getTotalValueOfAllTransactions()));
     }
 }

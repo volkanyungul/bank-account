@@ -28,7 +28,10 @@ class BankAccountControllerTest {
     @Test
     @SneakyThrows
     void shouldReturnBalance() {
+        // given
         when(bankAccountService.retrieveBalance()).thenReturn(1234.56d);
+        // when
+        // then
         this.mockMvc.perform(get("/v1/bank-account/balance"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"balance\":1234.56}"));

@@ -1,5 +1,0 @@
-producer:
-  transactionCountPerSecond: 50
-  transactionAmountRange:
-    from: 200
-    to: 500000

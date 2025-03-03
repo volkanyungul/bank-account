@@ -14,7 +14,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class AuditManager {
 
-    private static final Comparator<Transaction> TRANSACTION_COMPARATOR = Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder());
+    private static final Comparator<Transaction> TRANSACTION_COMPARATOR =
+            Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder());
 
     private PriorityQueue<Transaction> transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
 
@@ -37,7 +38,7 @@ public class AuditManager {
         }
     }
 
-    public void sendAuditsAndResetQueue() {
+    private void sendAuditsAndResetQueue() {
         auditProcessor.process(transactionPriorityQueue);
         transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
     }

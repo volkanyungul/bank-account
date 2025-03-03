@@ -12,4 +12,5 @@ import java.util.Map;
 @ConfigurationProperties(prefix="producer")
 public class ProducerProperties {
     private Map<TransactionType, ProducerTransactionConfig> transactionTypeConfigMap;
+    private ProducerSchedulerConfig scheduler;
 }

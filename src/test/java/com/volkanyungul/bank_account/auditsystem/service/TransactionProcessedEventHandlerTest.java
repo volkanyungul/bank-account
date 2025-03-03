@@ -1,6 +1,6 @@
-package com.volkanyungul.bank_account.balancetracker.service;
+package com.volkanyungul.bank_account.auditsystem.service;
 
-import com.volkanyungul.bank_account.events.TransactionCreatedEvent;
+import com.volkanyungul.bank_account.events.TransactionProcessedEvent;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,13 +15,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class TransactionCreatedEventHandlerTest {
+class TransactionProcessedEventHandlerTest {
 
     @InjectMocks
-    private TransactionCreatedEventHandler transactionCreatedEventHandler;
+    private TransactionProcessedEventHandler transactionProcessedEventHandler;
 
     @Mock
-    private BankAccountService mockBankAccountService;
+    private AuditManager mockAuditManager;
 
     @Mock
     private Transaction mockTransaction;
@@ -29,12 +29,12 @@ class TransactionCreatedEventHandlerTest {
     @Test
     void shouldHandleOnApplicationEvent() {
         // given
-        TransactionCreatedEvent transactionCreatedEvent = new TransactionCreatedEvent(this, mockTransaction);
-        doNothing().when(mockBankAccountService).processTransaction(any(Transaction.class));
+        TransactionProcessedEvent transactionProcessedEvent = new TransactionProcessedEvent(this, mockTransaction);
+        doNothing().when(mockAuditManager).receiveTransaction(any(Transaction.class));
         // when
-        transactionCreatedEventHandler.onApplicationEvent(transactionCreatedEvent);
+        transactionProcessedEventHandler.onApplicationEvent(transactionProcessedEvent);
         // then
         ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
-        verify(mockBankAccountService, times(1)).processTransaction(transactionArgumentCaptor.capture());
+        verify(mockAuditManager, times(1)).receiveTransaction(transactionArgumentCaptor.capture());
     }
 }
