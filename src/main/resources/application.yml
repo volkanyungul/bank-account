@@ -11,6 +11,7 @@ producer:
         from: 200
         to: 500000
   scheduler:
+    enabled: true
     initialDelay: 0
     periodInSeconds: 1
 

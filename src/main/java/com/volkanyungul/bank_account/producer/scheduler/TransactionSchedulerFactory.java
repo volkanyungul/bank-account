@@ -2,6 +2,7 @@ package com.volkanyungul.bank_account.producer.scheduler;
 
 import com.volkanyungul.bank_account.producer.config.ProducerProperties;
 import com.volkanyungul.bank_account.producer.generator.TransactionGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.concurrent.Executors;
 
 @Configuration
+@ConditionalOnProperty(name="producer.scheduler.enabled", havingValue = "true", matchIfMissing = true)
 public class TransactionSchedulerFactory {
 
     @Bean
