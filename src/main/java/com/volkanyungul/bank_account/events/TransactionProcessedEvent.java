@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class TransactionProcessedEvent extends ApplicationEvent {
 
-    private final Transaction transaction;
+    private final transient Transaction transaction;
 
     public TransactionProcessedEvent(Object source, Transaction transaction) {
         super(source);
