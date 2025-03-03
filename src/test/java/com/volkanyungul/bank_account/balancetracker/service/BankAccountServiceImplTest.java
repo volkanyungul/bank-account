@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 
@@ -15,6 +16,8 @@ import static com.volkanyungul.bank_account.producer.dto.TransactionType.CREDIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +29,11 @@ class BankAccountServiceImplTest {
     @Mock
     private BalanceRepository balanceRepository;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     private Transaction transaction;
+
 
     @BeforeEach
     void setUp() {
@@ -37,6 +44,7 @@ class BankAccountServiceImplTest {
     void processTransaction() {
         doNothing().when(balanceRepository).add(any());
         bankAccountService.processTransaction(transaction);
+        verify(applicationEventPublisher, times(1)).publishEvent(any());
     }
 
     @Test

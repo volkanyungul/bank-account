@@ -3,7 +3,7 @@ package com.volkanyungul.bank_account.auditsystem.service.batchprocessor;
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
-import com.volkanyungul.bank_account.auditsystem.service.submission.ConsoleAuditSubmitter;
+import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
 import org.junit.jupiter.api.Test;
@@ -17,8 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +63,7 @@ class BatchAuditProcessorTest {
         // Batch 2 -> [8,2]
         // Batch 3 -> [8,2]
         // Batch 4 -> [5,3,1]
-        List<Batch> batches = auditSubmission.batches();
+        List<Batch> batches = auditSubmission.submission().batches();
         assertEquals(4, batches.size());
         assertEquals(2, batches.get(0).getCountOfTransactions().intValue());
         assertEquals(2, batches.get(1).getCountOfTransactions().intValue());

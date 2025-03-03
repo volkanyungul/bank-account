@@ -1,6 +1,5 @@
 package com.volkanyungul.bank_account.auditsystem.service;
 
-
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.AuditProcessor;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
@@ -15,8 +14,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class AuditManager {
 
-    private final PriorityQueue<Transaction> transactionPriorityQueue =
-            new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
+    private static final Comparator<Transaction> TRANSACTION_COMPARATOR = Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder());
+
+    private PriorityQueue<Transaction> transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
 
     private final AuditProcessor auditProcessor;
 
@@ -39,6 +39,6 @@ public class AuditManager {
 
     public void sendAuditsAndResetQueue() {
         auditProcessor.process(transactionPriorityQueue);
-        transactionPriorityQueue.clear();
+        transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
     }
 }

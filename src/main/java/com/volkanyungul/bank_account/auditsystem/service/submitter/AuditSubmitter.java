@@ -1,4 +1,4 @@
-package com.volkanyungul.bank_account.auditsystem.service.submission;
+package com.volkanyungul.bank_account.auditsystem.service.submitter;
 
 import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 

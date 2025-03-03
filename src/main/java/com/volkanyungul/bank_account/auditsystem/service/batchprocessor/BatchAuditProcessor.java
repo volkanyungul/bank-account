@@ -4,11 +4,11 @@ import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.auditsystem.dto.Submission;
-import com.volkanyungul.bank_account.auditsystem.service.submission.AuditSubmitter;
-import com.volkanyungul.bank_account.auditsystem.service.submission.ConsoleAuditSubmitter;
+import com.volkanyungul.bank_account.auditsystem.service.submitter.AuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ public class BatchAuditProcessor implements AuditProcessor {
 
     private final AuditSubmitter auditSubmitter;
 
+    @Async
     @Override
     public void process(PriorityQueue<Transaction> auditTransactionsPriorityQueue) {
         List<Batch> batchList = splitAuditTransactionsIntoBatches(auditTransactionsPriorityQueue);
