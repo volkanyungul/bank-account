@@ -25,24 +25,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BatchAuditProcessorTest {
+class TimeOptimizedAuditProcessorTest {
 
     @Mock
     private AuditSystemProperties mockAuditSystemProperties;
 
     @Mock
-    private ConsoleAuditSubmitter mockConsoleAuditSubmissionService;
+    private ConsoleAuditSubmitter mockConsoleAuditSubmitter;
 
     @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    private ApplicationEventPublisher mockApplicationEventPublisher;
 
     /*
         Amounts in the transactions are like [9 , 8 , 8 , 5, 3, 2, 2, 1, 1], and totalValueOfAllTransactionsThreshold is 10.
         It should create batches including below amounts
-        Batch 1 -> [9,1]
-        Batch 2 -> [8,2]
-        Batch 3 -> [8,2]
-        Batch 4 -> [5,3,1]
+        Batch 1 -> [9]
+        Batch 2 -> [8]
+        Batch 3 -> [8]
+        Batch 4 -> [5,3,2]
+        Batch 5 -> [2,1,1]
         */
     @Test
     void shouldSplitTheTransactionsInTheQueueIntoBatches() {
@@ -51,13 +52,13 @@ class BatchAuditProcessorTest {
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
         auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
-        BatchAuditProcessor batchAuditProcessor = new BatchAuditProcessor(mockAuditSystemProperties, mockConsoleAuditSubmissionService, applicationEventPublisher);
+        var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedAuditProcessor(mockConsoleAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
-        batchAuditProcessor.process(auditTransactionsPriorityQueue);
+        batchAuditNonRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);
         // then
         ArgumentCaptor<AuditSubmission> auditSubmissionArgumentCaptor = ArgumentCaptor.forClass(AuditSubmission.class);
-        verify(mockConsoleAuditSubmissionService, times(1)).submit(auditSubmissionArgumentCaptor.capture());
+        verify(mockConsoleAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
         List<Batch> batches = auditSubmissionArgumentCaptor.getValue().submission().batches();
         validateBatches(batches);
     }
@@ -72,15 +73,17 @@ class BatchAuditProcessorTest {
 
     private static void validateBatches(List<Batch> batches) {
         // validate transaction counts
-        assertEquals(4L, batches.size());
-        assertEquals(2L, batches.get(0).getCountOfTransactions());
-        assertEquals(2L, batches.get(1).getCountOfTransactions());
-        assertEquals(2L, batches.get(2).getCountOfTransactions());
+        assertEquals(5L, batches.size());
+        assertEquals(1L, batches.get(0).getCountOfTransactions());
+        assertEquals(1L, batches.get(1).getCountOfTransactions());
+        assertEquals(1L, batches.get(2).getCountOfTransactions());
         assertEquals(3L, batches.get(3).getCountOfTransactions());
+        assertEquals(3L, batches.get(4).getCountOfTransactions());
         // validate total value of all transactions in a batch
-        assertEquals(0, new BigDecimal("10").compareTo(batches.get(0).getTotalValueOfAllTransactions()));
-        assertEquals(0, new BigDecimal("10").compareTo(batches.get(1).getTotalValueOfAllTransactions()));
-        assertEquals(0, new BigDecimal("10").compareTo(batches.get(2).getTotalValueOfAllTransactions()));
-        assertEquals(0, new BigDecimal("9").compareTo(batches.get(3).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("9").compareTo(batches.get(0).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("8").compareTo(batches.get(1).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("8").compareTo(batches.get(2).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("10").compareTo(batches.get(3).getTotalValueOfAllTransactions()));
+        assertEquals(0, new BigDecimal("4").compareTo(batches.get(4).getTotalValueOfAllTransactions()));
     }
 }

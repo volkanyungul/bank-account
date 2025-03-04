@@ -19,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(EndToEndITConfig.class)
-class BankAccountEndToEndIT {
+public class BankAccountEndToEndIT {
 
     @Autowired
-    private AuditSubmissionITEventListener AuditSubmissionITEventListener;
+    private AuditSubmissionITEventListener auditSubmissionITEventListener;
 
     @Autowired
     private AuditSystemProperties auditSystemProperties;
@@ -31,9 +31,9 @@ class BankAccountEndToEndIT {
     void generateTransactionsUntilFirstSubmissionBatchOfAuditIsPrepared() {
         // given
         // when
-        List<Batch> batches = AuditSubmissionITEventListener.getBatches();
+        List<Batch> batches = auditSubmissionITEventListener.getBatches();
         long transactionCountInAllBatches = batches.stream().mapToLong(Batch::getCountOfTransactions).sum();
-        PriorityQueue<Transaction> transactions = AuditSubmissionITEventListener.getTransactions();
+        PriorityQueue<Transaction> transactions = auditSubmissionITEventListener.getTransactions();
 
         // then
         assertEquals(auditSystemProperties.getTransactionCountThreshold(), transactionCountInAllBatches);
@@ -44,12 +44,12 @@ class BankAccountEndToEndIT {
         verifyThatTransactionCountInAllBatchesMatchesTransactionAmountTotal(batches, transactions);
     }
 
-    private void verifyThatTransactionCountInAllBatchesMatchesTransactionAmountTotal(List<Batch> batches, PriorityQueue<Transaction> transactions) {
+    protected void verifyThatTransactionCountInAllBatchesMatchesTransactionAmountTotal(List<Batch> batches, PriorityQueue<Transaction> transactions) {
         assertEquals(batches.stream().map(Batch::getTotalValueOfAllTransactions).reduce(BigDecimal.ZERO, BigDecimal::add),
                 transactions.stream().map(transaction -> transaction.amount().abs()).reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
-    private void verifyTotalValueOfTransactionInEachBatchIsSmallerThanThreshold(List<Batch> batches, BigDecimal totalValueOfTransactionsThreshold) {
+    protected void verifyTotalValueOfTransactionInEachBatchIsSmallerThanThreshold(List<Batch> batches, BigDecimal totalValueOfTransactionsThreshold) {
         assertTrue(batches.stream().anyMatch(batch -> batch.getTotalValueOfAllTransactions().compareTo(totalValueOfTransactionsThreshold) <= 0));
     }
 }
