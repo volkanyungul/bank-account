@@ -8,26 +8,22 @@ import com.volkanyungul.bank_account.auditsystem.service.submitter.AuditSubmitte
 import com.volkanyungul.bank_account.events.AuditReadyEvent;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.PriorityQueue;
 
 @RequiredArgsConstructor
-@Component
-@Slf4j
-public class BatchAuditProcessor implements AuditProcessor {
+abstract class AbstractAuditProcessor implements AuditProcessor {
 
-    private final AuditSystemProperties auditSystemProperties;
+    protected final AuditSubmitter auditSubmitter;
 
-    private final AuditSubmitter auditSubmitter;
+    protected final ApplicationEventPublisher applicationEventPublisher;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    protected final AuditSystemProperties auditSystemProperties;
+
+    abstract List<Batch> splitAuditTransactionsIntoBatches(PriorityQueue<Transaction> auditTransactionsPriorityQueue);
 
     @Async
     @Override
@@ -35,27 +31,6 @@ public class BatchAuditProcessor implements AuditProcessor {
         var batches = splitAuditTransactionsIntoBatches(new PriorityQueue<>(auditTransactionsPriorityQueue));
         publishAuditReadyEvent(batches, auditTransactionsPriorityQueue);
         submitAudit(batches);
-    }
-
-    private List<Batch> splitAuditTransactionsIntoBatches(PriorityQueue<Transaction> auditTransactionsPriorityQueue) {
-        List<Batch> batches = new ArrayList<>();
-
-        while(!auditTransactionsPriorityQueue.isEmpty()) {
-            var transaction = auditTransactionsPriorityQueue.poll();
-
-            findAvailableBatch(batches, transaction).ifPresentOrElse(batch -> batch.addTransaction(transaction), () -> {
-                var batch = new Batch(auditSystemProperties.getTotalValueOfAllTransactionsThreshold());
-                batch.addTransaction(transaction);
-                batches.add(batch);
-            });
-        }
-        return batches;
-    }
-
-    private Optional<Batch> findAvailableBatch(List<Batch> batches, Transaction transaction) {
-        return batches.stream()
-                .filter(batch -> batch.hasSpaceFor(transaction))
-                .findFirst();
     }
 
     private void publishAuditReadyEvent(List<Batch> batches, PriorityQueue<Transaction> transactions) {
@@ -66,4 +41,5 @@ public class BatchAuditProcessor implements AuditProcessor {
     private void submitAudit(List<Batch> batches) {
         auditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(batches).build()).build());
     }
+
 }

@@ -22,3 +22,5 @@ producer:
 audit-system:
   transactionCountThreshold: 1000
   totalValueOfAllTransactionsThreshold: 1000000
+  performance:
+    batchAuditProcessorAlgorithm: BatchOptimized # Options: [BatchOptimized, TimeOptimized]
