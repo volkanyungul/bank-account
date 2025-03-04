@@ -5,9 +5,11 @@ import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.auditsystem.dto.Submission;
 import com.volkanyungul.bank_account.auditsystem.service.submitter.AuditSubmitter;
+import com.volkanyungul.bank_account.events.AuditReadyEvent;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -25,11 +27,14 @@ public class BatchAuditProcessor implements AuditProcessor {
 
     private final AuditSubmitter auditSubmitter;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     @Async
     @Override
     public void process(PriorityQueue<Transaction> auditTransactionsPriorityQueue) {
-        List<Batch> batchList = splitAuditTransactionsIntoBatches(auditTransactionsPriorityQueue);
-        submitBatch(batchList);
+        var batches = splitAuditTransactionsIntoBatches(new PriorityQueue<>(auditTransactionsPriorityQueue));
+        publishAuditReadyEvent(batches, auditTransactionsPriorityQueue);
+        submitAudit(batches);
     }
 
     private List<Batch> splitAuditTransactionsIntoBatches(PriorityQueue<Transaction> auditTransactionsPriorityQueue) {
@@ -53,7 +58,12 @@ public class BatchAuditProcessor implements AuditProcessor {
                 .findFirst();
     }
 
-    private void submitBatch(List<Batch> batches) {
+    private void publishAuditReadyEvent(List<Batch> batches, PriorityQueue<Transaction> transactions) {
+        // This is implemented for integration test to verify randomly generated transactions mapped correctly into Audit or not
+        applicationEventPublisher.publishEvent(new AuditReadyEvent(this, batches, transactions));
+    }
+
+    private void submitAudit(List<Batch> batches) {
         auditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(batches).build()).build());
     }
 }

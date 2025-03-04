@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -32,6 +33,9 @@ class BatchAuditProcessorTest {
     @Mock
     private ConsoleAuditSubmitter mockConsoleAuditSubmissionService;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     /*
         Amounts in the transactions are like [9 , 8 , 8 , 5, 3, 2, 2, 1, 1], and totalValueOfAllTransactionsThreshold is 10.
         It should create batches including below amounts
@@ -47,7 +51,7 @@ class BatchAuditProcessorTest {
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
         auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
-        BatchAuditProcessor batchAuditProcessor = new BatchAuditProcessor(mockAuditSystemProperties, mockConsoleAuditSubmissionService);
+        BatchAuditProcessor batchAuditProcessor = new BatchAuditProcessor(mockAuditSystemProperties, mockConsoleAuditSubmissionService, applicationEventPublisher);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
         batchAuditProcessor.process(auditTransactionsPriorityQueue);
