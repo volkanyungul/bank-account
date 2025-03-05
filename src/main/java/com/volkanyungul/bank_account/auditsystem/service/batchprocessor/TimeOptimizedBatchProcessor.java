@@ -2,7 +2,6 @@ package com.volkanyungul.bank_account.auditsystem.service.batchprocessor;
 
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
-import com.volkanyungul.bank_account.auditsystem.service.submitter.AuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,7 +18,7 @@ import java.util.PriorityQueue;
 @ConditionalOnProperty(name = "audit-system.performance.batchAuditProcessorAlgorithm", havingValue = "TimeOptimized", matchIfMissing = true)
 public class TimeOptimizedBatchProcessor extends AbstractBatchProcessor {
 
-    public TimeOptimizedBatchProcessor(AuditSubmitter auditSubmitter, ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
+    public TimeOptimizedBatchProcessor(ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
         super(applicationEventPublisher, auditSystemProperties);
     }
 

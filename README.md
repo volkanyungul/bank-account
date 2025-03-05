@@ -22,7 +22,7 @@ We are charged for each batch sent therefore to save costs must minimize the num
 
 ## Assumptions and implementation decisions
 * My initial plan was to implement messaging from the **producer** to the **balance-tracker**, and from the **balance-tracker** to the **audit-system** using Kafka. In the BankAccountService code block, 
-it states that processTransaction should be called by the credit and debit generation threads. Because of this, I thought that all modules should be part of the same application.
+it states that processTransaction should be called by the credit and debit generation threads. Because of this, I thought that all modules should be part of the same application. I used Spring Events to communicate between the modules.
 * In the 'Producer' section, it states: "Debits will have a negative amount and credits a positive amount.". My initial plan was to store the debit amount in the object as positive internally, 
 and distinguish between **Credit** and **Debit** using the [TransactionType.java](src/main/java/com/volkanyungul/bank_account/producer/dto/TransactionType.java) enum. 
 However, in the current implementation, amount is negative for Debit case. As a result, I only needed **"add"** method in the
@@ -56,10 +56,10 @@ or [BankAccountEndToEndIT.java](src/test/java/com/volkanyungul/bank_account/inte
 ## How Integration Test Works? 
 I disabled [TransactionSchedulerFactory.java](src/main/java/com/volkanyungul/bank_account/producer/scheduler/TransactionSchedulerFactory.java) class by giving **@Profile("!test")** since its non-stop generating 
 transactions. I am loading these beans in [BankAccountEndToEndITConfig.java](src/test/java/com/volkanyungul/bank_account/integration/BankAccountEndToEndITConfig.java) manually. When all the context beans are loaded,
-contextRefreshedListener method gets triggered in BankAccountEndToEndITConfig.java[BankAccountEndToEndITConfig.java](src/test/java/com/volkanyungul/bank_account/integration/BankAccountEndToEndITConfig.java) and schedules the two threads.
+contextRefreshedListener method gets triggered in [BankAccountEndToEndITConfig.java](src/test/java/com/volkanyungul/bank_account/integration/BankAccountEndToEndITConfig.java) and schedules the two threads.
 **latch.await()** lets us block the test thread on the latch, and let the transaction traffic run over the system.
 
-When the batch files are ready to submit, [AbstractBatchProcessor.java](src/main/java/com/volkanyungul/bank_account/auditsystem/service/batchprocessor/AbstractBatchProcessor.java) sends an AuditReadyEvent[AuditReadyEvent.java](src/main/java/com/volkanyungul/bank_account/events/AuditReadyEvent.java)
+When the batch files are ready to submit, [AbstractBatchProcessor.java](src/main/java/com/volkanyungul/bank_account/auditsystem/service/batchprocessor/AbstractBatchProcessor.java) sends an [AuditReadyEvent.java](src/main/java/com/volkanyungul/bank_account/events/AuditReadyEvent.java)
 which is triggering the onApplicationEvent method in BankAccountEndToEndITConfig.java and it shut down the transaction producer threads. Then it count down the latch and let the test framework continue it's test and make the validations. 
 
 ## Performance Testing
@@ -75,6 +75,10 @@ into batches.
 performance:
   batchAuditProcessorAlgorithm: BatchOptimized
 ```
+
+Sample Performance Integretion Test Output will be like following; 
+
+![Image_Alt](https://github.com/volkanyungul/bank-account/blob/83febf6fea37869a02b56233562247395bafd23f/src/main/resources/docs/performanceITOutput.png)
 
 ## Performance Comparison
 |                                                              | **BatchOptimized** | **TimeOptimized** | 
