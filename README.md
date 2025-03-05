@@ -99,6 +99,7 @@ run the plugin, uploaded the result into [dependency-check-report.html](src/main
 
 No Vulnerabilities can be found. Here is the summary of the report:
 
+![Image_Alt](https://github.com/volkanyungul/bank-account/blob/17ca7aec9e6b1decc4b5a4e4ee51a1f42ae6ae40/src/main/resources/docs/security/dependencyCheckScanResult.png)
 
 
 ## Debugging
