@@ -35,10 +35,10 @@ class BankAccountServiceImplTest {
     private BankAccountServiceImpl bankAccountService;
 
     @Mock
-    private BalanceRepository balanceRepository;
+    private BalanceRepository mockBalanceRepository;
 
     @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    private ApplicationEventPublisher mockApplicationEventPublisher;
 
     private Transaction transaction;
 
@@ -59,28 +59,28 @@ class BankAccountServiceImplTest {
         createThreadsAndTriggerProcessTransactionForTwoSeconds(executorService);
         // then
         int expectedExecutionCount = debitProcessCount.addAndGet(creditProcessCount.get());
-        verify(balanceRepository, times(expectedExecutionCount)).add(any());
-        verify(applicationEventPublisher, times(expectedExecutionCount)).publishEvent(any());
+        verify(mockBalanceRepository, times(expectedExecutionCount)).add(any());
+        verify(mockApplicationEventPublisher, times(expectedExecutionCount)).publishEvent(any());
     }
 
     @Test
     void shouldSendBalanceToRepoAndTriggerPublisherWhenProcessingTransaction() {
         // given
-        doNothing().when(balanceRepository).add(any());
+        doNothing().when(mockBalanceRepository).add(any());
         // when
         bankAccountService.processTransaction(transaction);
         // then
         ArgumentCaptor<TransactionProcessedEvent> transactionProcessedEventArgumentCaptor = ArgumentCaptor.forClass(TransactionProcessedEvent.class);
-        verify(applicationEventPublisher, times(1)).publishEvent(transactionProcessedEventArgumentCaptor.capture());
+        verify(mockApplicationEventPublisher, times(1)).publishEvent(transactionProcessedEventArgumentCaptor.capture());
         assertEquals(transaction, transactionProcessedEventArgumentCaptor.getValue().getTransaction());
-        verify(balanceRepository, times(1)).add(any());
+        verify(mockBalanceRepository, times(1)).add(any());
     }
 
     @Test
     void shouldRetrieveBalanceFromRepository() {
         // given
         BigDecimal expectedBalance = new BigDecimal("397750.43");
-        when(balanceRepository.retrieve()).thenReturn(expectedBalance);
+        when(mockBalanceRepository.retrieve()).thenReturn(expectedBalance);
         // when
         double balance = bankAccountService.retrieveBalance();
         // then

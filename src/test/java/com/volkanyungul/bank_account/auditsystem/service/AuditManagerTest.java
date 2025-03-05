@@ -36,10 +36,10 @@ class AuditManagerTest {
     private AuditManager auditManager;
 
     @Mock
-    private BatchProcessor batchProcessor;
+    private BatchProcessor mockBatchProcessor;
 
     @Mock
-    private AuditSystemProperties auditSystemProperties;
+    private AuditSystemProperties mockAuditSystemProperties;
 
     @Mock
     private ConsoleLoggingAuditSubmitter mockConsoleLoggingAuditSubmitter;
@@ -64,18 +64,18 @@ class AuditManagerTest {
     @SuppressWarnings("unchecked")
     void shouldSortTheAddedTransactionsAndSendToAuditProcessorInCorrectOrder() {
         // given
-        when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
+        when(mockAuditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
         String smallAmountTransactionId = "id1";
         String bigAmountTransactionId = "id2";
         Transaction smallAmountTransaction = Transaction.builder().id(smallAmountTransactionId).transactionType(CREDIT).amount(new BigDecimal("100")).build();
         Transaction highAmountTransaction = Transaction.builder().id(bigAmountTransactionId).transactionType(CREDIT).amount(new BigDecimal("200")).build();
-        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
+        when(mockBatchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(smallAmountTransaction);
         auditManager.receiveTransaction(highAmountTransaction);
         // then
         ArgumentCaptor<PriorityQueue<Transaction>> priorityQueueArgumentCaptor = ArgumentCaptor.forClass(PriorityQueue.class);
-        verify(batchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
+        verify(mockBatchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
         PriorityQueue<Transaction> auditProcessorSubmittedTransactions = priorityQueueArgumentCaptor.getValue();
         assertFalse(auditProcessorSubmittedTransactions.isEmpty());
 
@@ -93,7 +93,7 @@ class AuditManagerTest {
     void shouldReceiveTransactionWhenTransactionCountNotReachedTheThreshold() {
         // given
         // when
-        when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(3L);
+        when(mockAuditSystemProperties.getTransactionCountThreshold()).thenReturn(3L);
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
         // then
@@ -108,8 +108,8 @@ class AuditManagerTest {
     @SuppressWarnings("unchecked")
     void shouldReceiveTransactionWhenTransactionCountReachedTheThreshold() {
         // given
-        when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
+        when(mockAuditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
+        when(mockBatchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -127,8 +127,8 @@ class AuditManagerTest {
     @SuppressWarnings("unchecked")
     void shouldTestQueueEmptyWhenAllTheTransactionsAreSubmittedToTheAuditProcessor() {
         // given
-        when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
+        when(mockAuditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
+        when(mockBatchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -141,14 +141,14 @@ class AuditManagerTest {
     @SuppressWarnings("unchecked")
     void prepareBatchAndResetQueue() {
         // given
-        when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
+        when(mockAuditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
+        when(mockBatchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
         // then
         ArgumentCaptor<PriorityQueue<Transaction>> priorityQueueArgumentCaptor = ArgumentCaptor.forClass(PriorityQueue.class);
-        verify(batchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
+        verify(mockBatchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
         PriorityQueue<Transaction> auditProcessorSubmittedTransactions = priorityQueueArgumentCaptor.getValue();
         assertFalse(auditProcessorSubmittedTransactions.isEmpty());
 

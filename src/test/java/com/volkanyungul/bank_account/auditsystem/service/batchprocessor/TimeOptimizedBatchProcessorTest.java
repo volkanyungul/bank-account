@@ -51,7 +51,7 @@ class TimeOptimizedBatchProcessorTest {
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
         auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
-        var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedBatchProcessor(mockConsoleLoggingAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
+        var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedBatchProcessor(mockApplicationEventPublisher, mockAuditSystemProperties);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
         CompletableFuture<List<Batch>> batchesFuture = batchAuditNonRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);

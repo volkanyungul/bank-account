@@ -1,5 +1,6 @@
 package com.volkanyungul.bank_account.auditsystem.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ public class Batch {
         return getRemainingLimit().compareTo(transaction.amount().abs()) >= 0;
     }
 
+    @JsonIgnore
     public BigDecimal getRemainingLimit() {
         return this.valueOfTransactionLimit.subtract(totalValueOfAllTransactions.get());
     }
