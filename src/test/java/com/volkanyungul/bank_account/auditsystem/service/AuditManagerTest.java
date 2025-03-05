@@ -1,7 +1,7 @@
 package com.volkanyungul.bank_account.auditsystem.service;
 
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
-import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.AuditProcessor;
+import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.BatchProcessor;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ class AuditManagerTest {
     private AuditManager auditManager;
 
     @Mock
-    private AuditProcessor auditProcessor;
+    private BatchProcessor batchProcessor;
 
     @Mock
     private AuditSystemProperties auditSystemProperties;
@@ -68,7 +68,7 @@ class AuditManagerTest {
         auditManager.receiveTransaction(highAmountTransaction);
         // then
         ArgumentCaptor<PriorityQueue<Transaction>> priorityQueueArgumentCaptor = ArgumentCaptor.forClass(PriorityQueue.class);
-        verify(auditProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
+        verify(batchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
         PriorityQueue<Transaction> auditProcessorSubmittedTransactions = priorityQueueArgumentCaptor.getValue();
         assertFalse(auditProcessorSubmittedTransactions.isEmpty());
 
@@ -102,7 +102,7 @@ class AuditManagerTest {
     void shouldReceiveTransactionWhenTransactionCountReachedTheThreshold() {
         // given
         when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        doNothing().when(auditProcessor).process(any());
+        doNothing().when(batchProcessor).process(any());
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -121,7 +121,7 @@ class AuditManagerTest {
     void shouldTestQueueEmptyWhenAllTheTransactionsAreSubmittedToTheAuditProcessor() {
         // given
         when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        doNothing().when(auditProcessor).process(any());
+        doNothing().when(batchProcessor).process(any());
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -140,7 +140,7 @@ class AuditManagerTest {
         auditManager.receiveTransaction(transaction2);
         // then
         ArgumentCaptor<PriorityQueue<Transaction>> priorityQueueArgumentCaptor = ArgumentCaptor.forClass(PriorityQueue.class);
-        verify(auditProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
+        verify(batchProcessor, times(1)).process(priorityQueueArgumentCaptor.capture());
         PriorityQueue<Transaction> auditProcessorSubmittedTransactions = priorityQueueArgumentCaptor.getValue();
         assertFalse(auditProcessorSubmittedTransactions.isEmpty());
 

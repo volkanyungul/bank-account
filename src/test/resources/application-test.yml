@@ -1,26 +1,22 @@
-spring:
-  profiles:
-    active: test
-
 producer:
   transactionTypeConfigMap:
     debit:
-      transactionCountPerSecond: 25
+      transactionCountPerSecond: 500
       transactionAmountRange:
         from: -500000
         to: -200
     credit:
-      transactionCountPerSecond: 25
+      transactionCountPerSecond: 500
       transactionAmountRange:
         from: 200
         to: 500000
   scheduler:
-    enabled: false
+    enabled: true
     initialDelay: 0
-    periodInSeconds: 1
+    periodInSeconds: 300
 
 audit-system:
   transactionCountThreshold: 1000
   totalValueOfAllTransactionsThreshold: 1000000
   performance:
-    batchAuditProcessorAlgorithm: BatchOptimized # Options: [BatchOptimized, TimeOptimized]
+    batchAuditProcessorAlgorithm: BatchOptimized # [BatchOptimized, TimeOptimized]

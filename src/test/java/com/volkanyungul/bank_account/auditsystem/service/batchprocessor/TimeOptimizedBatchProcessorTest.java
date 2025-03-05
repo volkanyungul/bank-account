@@ -3,7 +3,7 @@ package com.volkanyungul.bank_account.auditsystem.service.batchprocessor;
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
-import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleAuditSubmitter;
+import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleLoggingAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TimeOptimizedAuditProcessorTest {
+class TimeOptimizedBatchProcessorTest {
 
     @Mock
     private AuditSystemProperties mockAuditSystemProperties;
 
     @Mock
-    private ConsoleAuditSubmitter mockConsoleAuditSubmitter;
+    private ConsoleLoggingAuditSubmitter mockConsoleLoggingAuditSubmitter;
 
     @Mock
     private ApplicationEventPublisher mockApplicationEventPublisher;
@@ -52,13 +52,13 @@ class TimeOptimizedAuditProcessorTest {
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
         auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
-        var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedAuditProcessor(mockConsoleAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
+        var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedBatchProcessor(mockConsoleLoggingAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
         batchAuditNonRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);
         // then
         ArgumentCaptor<AuditSubmission> auditSubmissionArgumentCaptor = ArgumentCaptor.forClass(AuditSubmission.class);
-        verify(mockConsoleAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
+        verify(mockConsoleLoggingAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
         List<Batch> batches = auditSubmissionArgumentCaptor.getValue().submission().batches();
         validateBatches(batches);
     }

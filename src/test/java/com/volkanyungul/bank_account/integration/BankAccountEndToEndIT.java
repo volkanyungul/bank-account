@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(EndToEndITConfig.class)
-public class BankAccountEndToEndIT {
+@Import(BankAccountEndToEndITConfig.class)
+class BankAccountEndToEndIT {
 
     @Autowired
     private AuditSubmissionITEventListener auditSubmissionITEventListener;

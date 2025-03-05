@@ -3,7 +3,7 @@ package com.volkanyungul.bank_account.integration.performance;
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.integration.AuditSubmissionITEventListener;
-import com.volkanyungul.bank_account.integration.EndToEndITConfig;
+import com.volkanyungul.bank_account.integration.BankAccountEndToEndITConfig;
 import com.volkanyungul.bank_account.producer.config.ProducerProperties;
 import com.volkanyungul.bank_account.producer.dto.TransactionType;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +17,44 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 
-import static com.volkanyungul.bank_account.util.TestConstants.PERFORMANCE_CONSOLE_LOG_FORMAT;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Slf4j
-@Import(EndToEndITConfig.class)
+@Import(BankAccountEndToEndITConfig.class)
 class PerformanceIT {
+
+    public static final String PERFORMANCE_CONSOLE_LOG_FORMAT = """
+                --------------------------------------------------------------
+                --------------------------------------------------------------
+                Config
+                --------------------------------------------------------------
+                Thread Count: {}
+                Thread Running Period: {} (second)
+                Credit Transaction Count: {} (per second)
+                Debit Transaction Count: {} (per second)
+                Transaction Count Threshold: {}
+                Transaction Total Value Of All Transactions Threshold: {}
+                --------------------------------------------------------------
+                TRANSACTION OVERVIEW
+                --------------------------------------------------------------
+                Processed Transaction Count: {}
+                Transaction Total Amount: {}
+                --------------------------------------------------------------
+                BATCH OVERVIEW
+                --------------------------------------------------------------
+                Batch Count: {}
+                Transaction Total Count In All Batches: {}
+                Batch Total Amount: {}
+                --------------------------------------------------------------
+                PERFORMANCE RESULT
+                --------------------------------------------------------------
+                Produced Batch Count: {}
+                Total Execution Time: {}
+                --------------------------------------------------------------
+                --------------------------------------------------------------
+                """;
 
     @Autowired
     private AuditSubmissionITEventListener auditSubmissionITEventListener;

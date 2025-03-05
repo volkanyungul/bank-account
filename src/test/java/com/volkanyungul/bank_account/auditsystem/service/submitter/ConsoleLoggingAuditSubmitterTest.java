@@ -27,10 +27,10 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-class ConsoleAuditSubmitterTest {
+class ConsoleLoggingAuditSubmitterTest {
 
     @InjectMocks
-    private ConsoleAuditSubmitter consoleAuditSubmitter;
+    private ConsoleLoggingAuditSubmitter consoleLoggingAuditSubmitter;
 
     @Mock
     private ObjectMapper mockObjectMapper;
@@ -44,8 +44,8 @@ class ConsoleAuditSubmitterTest {
 
     @BeforeEach
     void setUp() {
-        logCaptor = LogCaptor.forClass(ConsoleAuditSubmitter.class);
-        consoleAuditSubmitter = new ConsoleAuditSubmitter(mockObjectMapper);
+        logCaptor = LogCaptor.forClass(ConsoleLoggingAuditSubmitter.class);
+        consoleLoggingAuditSubmitter = new ConsoleLoggingAuditSubmitter(mockObjectMapper);
         batch = new Batch(new BigDecimal("12"));
         batch.addTransaction(Transaction.builder().id("123-abc").transactionType(CREDIT).amount(new BigDecimal("4546.34")).build());
         when(mockObjectMapper.writer()).thenReturn(mockObjectWriter);
@@ -67,7 +67,7 @@ class ConsoleAuditSubmitterTest {
             }""";
         when(mockObjectWriter.writeValueAsString(any())).thenReturn(expectedSingleBatchSubmission);
         // when
-        consoleAuditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(List.of(batch)).build()).build());
+        consoleLoggingAuditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(List.of(batch)).build()).build());
         // then
         assertEquals(expectedSingleBatchSubmission, logCaptor.getInfoLogs().getFirst());
     }
@@ -92,7 +92,7 @@ class ConsoleAuditSubmitterTest {
         batch2.addTransaction(Transaction.builder().id("456-def").transactionType(TransactionType.DEBIT).amount(new BigDecimal("224.12")).build());
         when(mockObjectWriter.writeValueAsString(any())).thenReturn(expectedMultiBatchSubmission);
         // when
-        consoleAuditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(List.of(batch, batch2)).build()).build());
+        consoleLoggingAuditSubmitter.submit(AuditSubmission.builder().submission(Submission.builder().batches(List.of(batch, batch2)).build()).build());
         // then
         assertEquals(expectedMultiBatchSubmission, logCaptor.getInfoLogs().getFirst());
     }
@@ -103,7 +103,7 @@ class ConsoleAuditSubmitterTest {
         // given
         when(mockObjectWriter.writeValueAsString(any())).thenThrow(new RuntimeException("Exception Occurred"));
         // when
-        consoleAuditSubmitter.submit(new AuditSubmission(new Submission(List.of(batch))));
+        consoleLoggingAuditSubmitter.submit(new AuditSubmission(new Submission(List.of(batch))));
         // then
         assertEquals("Error happened while printing submission", logCaptor.getErrorLogs().getFirst());
     }

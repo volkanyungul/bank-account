@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 @RequiredArgsConstructor
-abstract class AbstractAuditProcessor implements AuditProcessor {
+abstract class AbstractBatchProcessor implements BatchProcessor {
 
     protected final AuditSubmitter auditSubmitter;
 

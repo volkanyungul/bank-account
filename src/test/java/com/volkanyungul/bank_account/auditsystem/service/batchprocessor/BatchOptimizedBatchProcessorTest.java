@@ -3,7 +3,7 @@ package com.volkanyungul.bank_account.auditsystem.service.batchprocessor;
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
 import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
-import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleAuditSubmitter;
+import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleLoggingAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BatchOptimizedAuditProcessorTest {
+class BatchOptimizedBatchProcessorTest {
 
     @Mock
     private AuditSystemProperties mockAuditSystemProperties;
 
     @Mock
-    private ConsoleAuditSubmitter mockConsoleAuditSubmitter;
+    private ConsoleLoggingAuditSubmitter mockConsoleLoggingAuditSubmitter;
 
     @Mock
     private ApplicationEventPublisher mockApplicationEventPublisher;
@@ -51,13 +51,13 @@ class BatchOptimizedAuditProcessorTest {
                 new PriorityQueue<>(Comparator.comparing(transaction -> transaction.amount().abs(), Comparator.reverseOrder()));
         auditTransactionsPriorityQueue.addAll(createMockTransactions());
 
-        var batchAuditRevisitingBatchesProcessor = new BatchOptimizedAuditProcessor(mockConsoleAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
+        var batchAuditRevisitingBatchesProcessor = new BatchOptimizedBatchProcessor(mockConsoleLoggingAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
         batchAuditRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);
         // then
         ArgumentCaptor<AuditSubmission> auditSubmissionArgumentCaptor = ArgumentCaptor.forClass(AuditSubmission.class);
-        verify(mockConsoleAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
+        verify(mockConsoleLoggingAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
         List<Batch> batches = auditSubmissionArgumentCaptor.getValue().submission().batches();
         validateBatches(batches);
     }
@@ -73,10 +73,10 @@ class BatchOptimizedAuditProcessorTest {
     private static void validateBatches(List<Batch> batches) {
         // validate transaction counts
         assertEquals(4L, batches.size());
-        assertEquals(2L, batches.get(0).getCountOfTransactions());
+        assertEquals(3L, batches.get(0).getCountOfTransactions());
         assertEquals(2L, batches.get(1).getCountOfTransactions());
-        assertEquals(2L, batches.get(2).getCountOfTransactions());
-        assertEquals(3L, batches.get(3).getCountOfTransactions());
+        assertEquals(3L, batches.get(2).getCountOfTransactions());
+        assertEquals(1L, batches.get(3).getCountOfTransactions());
         // validate total value of all transactions in a batch
         assertEquals(0, new BigDecimal("10").compareTo(batches.get(0).getTotalValueOfAllTransactions()));
         assertEquals(0, new BigDecimal("10").compareTo(batches.get(1).getTotalValueOfAllTransactions()));

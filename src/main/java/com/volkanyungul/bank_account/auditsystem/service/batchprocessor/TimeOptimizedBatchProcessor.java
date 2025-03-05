@@ -17,9 +17,9 @@ import java.util.PriorityQueue;
 @Component
 @Slf4j
 @ConditionalOnProperty(name = "audit-system.performance.batchAuditProcessorAlgorithm", havingValue = "TimeOptimized", matchIfMissing = true)
-public class TimeOptimizedAuditProcessor extends AbstractAuditProcessor {
+public class TimeOptimizedBatchProcessor extends AbstractBatchProcessor {
 
-    public TimeOptimizedAuditProcessor(AuditSubmitter auditSubmitter, ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
+    public TimeOptimizedBatchProcessor(AuditSubmitter auditSubmitter, ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
         super(auditSubmitter, applicationEventPublisher, auditSystemProperties);
     }
 

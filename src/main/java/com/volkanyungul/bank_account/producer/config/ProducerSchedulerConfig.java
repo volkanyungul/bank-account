@@ -12,4 +12,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ProducerSchedulerConfig {
     private Long initialDelay;
     private Long periodInSeconds;
+    private boolean enabled;
 }

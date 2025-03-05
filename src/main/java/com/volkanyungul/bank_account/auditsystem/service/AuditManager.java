@@ -1,7 +1,7 @@
 package com.volkanyungul.bank_account.auditsystem.service;
 
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
-import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.AuditProcessor;
+import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.BatchProcessor;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ public class AuditManager {
 
     private PriorityQueue<Transaction> transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
 
-    private final AuditProcessor auditProcessor;
+    private final BatchProcessor batchProcessor;
 
     private final AuditSystemProperties auditSystemProperties;
 
@@ -39,7 +39,7 @@ public class AuditManager {
     }
 
     private void sendAuditsAndResetQueue() {
-        auditProcessor.process(transactionPriorityQueue);
+        batchProcessor.process(transactionPriorityQueue);
         transactionPriorityQueue = new PriorityQueue<>(TRANSACTION_COMPARATOR);
     }
 }

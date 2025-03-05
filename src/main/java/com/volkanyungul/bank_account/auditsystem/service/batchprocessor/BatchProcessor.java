@@ -4,7 +4,7 @@ import com.volkanyungul.bank_account.producer.dto.Transaction;
 
 import java.util.PriorityQueue;
 
-public interface AuditProcessor {
+public interface BatchProcessor {
 
     void process(PriorityQueue<Transaction> auditTransactionsPriorityQueue);
 }

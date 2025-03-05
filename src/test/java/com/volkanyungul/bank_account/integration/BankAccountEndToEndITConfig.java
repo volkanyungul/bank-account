@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @TestConfiguration
-public class EndToEndITConfig implements ApplicationListener<AuditReadyEvent> {
+public class BankAccountEndToEndITConfig implements ApplicationListener<AuditReadyEvent> {
 
     private TransactionScheduler debitTransactionScheduler;
 
