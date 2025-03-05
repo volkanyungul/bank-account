@@ -1,7 +1,9 @@
 package com.volkanyungul.bank_account.auditsystem.service;
 
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
+import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.auditsystem.service.batchprocessor.BatchProcessor;
+import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleLoggingAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,14 +16,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.concurrent.CompletableFuture;
 
 import static com.volkanyungul.bank_account.producer.dto.TransactionType.CREDIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +40,9 @@ class AuditManagerTest {
 
     @Mock
     private AuditSystemProperties auditSystemProperties;
+
+    @Mock
+    private ConsoleLoggingAuditSubmitter mockConsoleLoggingAuditSubmitter;
 
     private Field transactionPriorityQueueField;
 
@@ -63,6 +69,7 @@ class AuditManagerTest {
         String bigAmountTransactionId = "id2";
         Transaction smallAmountTransaction = Transaction.builder().id(smallAmountTransactionId).transactionType(CREDIT).amount(new BigDecimal("100")).build();
         Transaction highAmountTransaction = Transaction.builder().id(bigAmountTransactionId).transactionType(CREDIT).amount(new BigDecimal("200")).build();
+        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(smallAmountTransaction);
         auditManager.receiveTransaction(highAmountTransaction);
@@ -102,7 +109,7 @@ class AuditManagerTest {
     void shouldReceiveTransactionWhenTransactionCountReachedTheThreshold() {
         // given
         when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        doNothing().when(batchProcessor).process(any());
+        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -121,7 +128,7 @@ class AuditManagerTest {
     void shouldTestQueueEmptyWhenAllTheTransactionsAreSubmittedToTheAuditProcessor() {
         // given
         when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
-        doNothing().when(batchProcessor).process(any());
+        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);
@@ -132,9 +139,10 @@ class AuditManagerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void sendAuditsAndResetQueue() {
+    void prepareBatchAndResetQueue() {
         // given
         when(auditSystemProperties.getTransactionCountThreshold()).thenReturn(2L);
+        when(batchProcessor.process(any())).thenReturn(CompletableFuture.completedFuture(List.of(new Batch(new BigDecimal("10")), new Batch(new BigDecimal("20")))));
         // when
         auditManager.receiveTransaction(transaction1);
         auditManager.receiveTransaction(transaction2);

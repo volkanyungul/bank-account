@@ -1,13 +1,12 @@
 package com.volkanyungul.bank_account.auditsystem.service.batchprocessor;
 
 import com.volkanyungul.bank_account.auditsystem.config.AuditSystemProperties;
-import com.volkanyungul.bank_account.auditsystem.dto.AuditSubmission;
 import com.volkanyungul.bank_account.auditsystem.dto.Batch;
 import com.volkanyungul.bank_account.auditsystem.service.submitter.ConsoleLoggingAuditSubmitter;
 import com.volkanyungul.bank_account.producer.dto.Transaction;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -16,12 +15,11 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.concurrent.CompletableFuture;
 
 import static com.volkanyungul.bank_account.producer.dto.TransactionType.CREDIT;
 import static com.volkanyungul.bank_account.producer.dto.TransactionType.DEBIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +44,7 @@ class TimeOptimizedBatchProcessorTest {
         Batch 5 -> [2,1,1]
         */
     @Test
+    @SneakyThrows
     void shouldSplitTheTransactionsInTheQueueIntoBatches() {
         // given
         PriorityQueue<Transaction> auditTransactionsPriorityQueue =
@@ -55,12 +54,9 @@ class TimeOptimizedBatchProcessorTest {
         var batchAuditNonRevisitingBatchesProcessor = new TimeOptimizedBatchProcessor(mockConsoleLoggingAuditSubmitter, mockApplicationEventPublisher, mockAuditSystemProperties);
         when(mockAuditSystemProperties.getTotalValueOfAllTransactionsThreshold()).thenReturn(new BigDecimal("10"));
         // when
-        batchAuditNonRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);
+        CompletableFuture<List<Batch>> batchesFuture = batchAuditNonRevisitingBatchesProcessor.process(auditTransactionsPriorityQueue);
         // then
-        ArgumentCaptor<AuditSubmission> auditSubmissionArgumentCaptor = ArgumentCaptor.forClass(AuditSubmission.class);
-        verify(mockConsoleLoggingAuditSubmitter, times(1)).submit(auditSubmissionArgumentCaptor.capture());
-        List<Batch> batches = auditSubmissionArgumentCaptor.getValue().submission().batches();
-        validateBatches(batches);
+        validateBatches(batchesFuture.get());
     }
 
     private List<Transaction> createMockTransactions() {
