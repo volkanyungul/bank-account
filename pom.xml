@@ -119,7 +119,6 @@
 				<configuration>
 					<!-- Skipped for now, uploaded the success report under resources/docs/dependency-check-report.html -->
 					<skip>true</skip>
-					<nvdApiKey>bc49dc65-2031-4510-8466-440811f422fc</nvdApiKey>
 					<nvdApiDelay>3000</nvdApiDelay>
 				</configuration>
 				<executions>
