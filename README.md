@@ -92,7 +92,15 @@ Sample Performance Integretion Test Output will be like following;
 |                                                              |                    |                   | 
 | Produced Batch Count                                         | **25017**          | **28981**         |
 | Total Execution Time In Seconds                              | **63.760308896**   | **51.212714899**  |
-  
+
+## Security - Dependency Check for library assessment
+Added org.owasp.dependency-check-maven plugin into pom.xml, get apiKey from [National Vulnerability Database](https://nvd.nist.gov/developers/api-key-requested), 
+run the plugin, uploaded the result into [dependency-check-report.html](src/main/resources/docs/security/dependency-check-report.html)
+
+No Vulnerabilities can be found. Here is the summary of the report:
+
+
+
 ## Debugging
 Change the log level into DEBUG in logback.xml. Messages like 'Transaction Created', 'Transaction Processed', etc. will be logged in DEBUG level.
 ```

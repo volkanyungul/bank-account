@@ -102,12 +102,30 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.5.2</version>
 				<executions>
 					<execution>
 						<goals>
 							<goal>integration-test</goal>
 							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>12.1.0</version>
+				<configuration>
+					<!-- Skipped for now, uploaded the success report under resources/docs/dependency-check-report.html -->
+					<skip>true</skip>
+					<nvdApiKey>bc49dc65-2031-4510-8466-440811f422fc</nvdApiKey>
+					<nvdApiDelay>3000</nvdApiDelay>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
