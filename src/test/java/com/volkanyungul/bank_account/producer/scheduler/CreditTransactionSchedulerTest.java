@@ -67,7 +67,7 @@ class CreditTransactionSchedulerTest {
         // given
         long duration = 3L; // let the test run for 3 seconds, it will abort once verification is finished
         when(mockProducerSchedulerConfig.getPeriodInSeconds()).thenReturn(2L);
-        when(mockProducerTransactionConfig.getTransactionCountPerSecond()).thenReturn(25L);
+        when(mockProducerTransactionConfig.getTransactionCountPerPeriod()).thenReturn(25L);
         int expectedGeneratedTransactionCount = 50, expectedPublishedTransactionCount = 50;
         // when
         creditTransactionScheduler.schedule();

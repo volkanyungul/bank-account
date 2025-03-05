@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProducerTransactionConfig {
-    private long transactionCountPerSecond;
+    private long transactionCountPerPeriod;
     private Range transactionAmountRange;
 }

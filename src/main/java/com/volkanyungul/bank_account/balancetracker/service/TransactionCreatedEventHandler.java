@@ -15,7 +15,7 @@ public class TransactionCreatedEventHandler implements ApplicationListener<Trans
 
     @Override
     public void onApplicationEvent(TransactionCreatedEvent event) {
-        log.info("Transaction Received: {}" , event.getTransaction());
+        log.debug("Transaction Created: {}" , event.getTransaction());
         bankAccountService.processTransaction(event.getTransaction());
     }
 }

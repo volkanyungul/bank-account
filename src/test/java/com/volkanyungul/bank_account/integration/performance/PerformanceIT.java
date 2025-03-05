@@ -84,9 +84,9 @@ class PerformanceIT {
         BigDecimal batchTotalAmount = batches.stream().map(Batch::getTotalValueOfAllTransactions).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         log.info(PERFORMANCE_CONSOLE_LOG_FORMAT, transactionTypeConfigMap.size(), producerProperties.getScheduler().getPeriodInSeconds(),
-                transactionTypeConfigMap.get(TransactionType.CREDIT).getTransactionCountPerSecond(), transactionTypeConfigMap.get(TransactionType.DEBIT).getTransactionCountPerSecond(),
+                transactionTypeConfigMap.get(TransactionType.CREDIT).getTransactionCountPerPeriod(), transactionTypeConfigMap.get(TransactionType.DEBIT).getTransactionCountPerPeriod(),
                 auditSystemProperties.getTransactionCountThreshold(), auditSystemProperties.getTotalValueOfAllTransactionsThreshold(),
-                transactions.size(), transactionTotalAmount, batches.size(), transactionCountInAllBatches, batchTotalAmount, batches.size(), duration / 1_000_000);
+                transactions.size(), transactionTotalAmount, batches.size(), transactionCountInAllBatches, batchTotalAmount, batches.size(), duration / 1_000_000_000.0);
     }
 
     @Test

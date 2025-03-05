@@ -15,7 +15,7 @@ public class TransactionProcessedEventHandler implements ApplicationListener<Tra
 
     @Override
     public void onApplicationEvent(TransactionProcessedEvent event) {
-        log.info("Transaction Processed: {}" , event.getTransaction());
+        log.debug("Transaction Processed: {}" , event.getTransaction());
         auditManager.receiveTransaction(event.getTransaction());
     }
 }

@@ -30,7 +30,7 @@ public class DebitTransactionScheduler implements TransactionScheduler {
 
         scheduledExecutorService.scheduleAtFixedRate(() -> {
             var transactionConfig = producerProperties.getTransactionTypeConfigMap().get(DEBIT);
-            LongStream.range(0, transactionConfig.getTransactionCountPerSecond())
+            LongStream.range(0, transactionConfig.getTransactionCountPerPeriod())
                     .mapToObj(i -> transactionGenerator.generate(DEBIT, transactionConfig.getTransactionAmountRange()))
                     .forEach(transaction -> applicationEventPublisher.publishEvent(new TransactionCreatedEvent(this, transaction)));
         }, scheduler.getInitialDelay(), scheduler.getPeriodInSeconds(), TimeUnit.SECONDS);
