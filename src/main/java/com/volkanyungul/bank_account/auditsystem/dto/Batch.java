@@ -29,7 +29,10 @@ public class Batch {
     }
 
     public boolean hasSpaceFor(Transaction transaction) {
-        var remainingLimit = this.valueOfTransactionLimit.subtract(totalValueOfAllTransactions.get());
-        return remainingLimit.compareTo(transaction.amount().abs()) >= 0;
+        return getRemainingLimit().compareTo(transaction.amount().abs()) >= 0;
+    }
+
+    public BigDecimal getRemainingLimit() {
+        return this.valueOfTransactionLimit.subtract(totalValueOfAllTransactions.get());
     }
 }

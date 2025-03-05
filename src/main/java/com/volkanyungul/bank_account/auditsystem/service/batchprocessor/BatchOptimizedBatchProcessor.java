@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -17,14 +17,14 @@ import java.util.PriorityQueue;
 @Component
 @Slf4j
 @ConditionalOnProperty(name = "audit-system.performance.batchAuditProcessorAlgorithm", havingValue = "BatchOptimized", matchIfMissing = true)
-public class BatchOptimizedAuditProcessor extends AbstractAuditProcessor {
+public class BatchOptimizedBatchProcessor extends AbstractBatchProcessor {
 
-    public BatchOptimizedAuditProcessor(AuditSubmitter auditSubmitter, ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
+    public BatchOptimizedBatchProcessor(AuditSubmitter auditSubmitter, ApplicationEventPublisher applicationEventPublisher, AuditSystemProperties auditSystemProperties) {
         super(auditSubmitter, applicationEventPublisher, auditSystemProperties);
     }
 
     public List<Batch> splitAuditTransactionsIntoBatches(PriorityQueue<Transaction> auditTransactionsPriorityQueue) {
-        List<Batch> batches = new ArrayList<>();
+        PriorityQueue<Batch> batches = new PriorityQueue<>(Comparator.comparing(Batch::getRemainingLimit, Comparator.reverseOrder()));
 
         while(!auditTransactionsPriorityQueue.isEmpty()) {
             var transaction = auditTransactionsPriorityQueue.poll();
@@ -35,10 +35,10 @@ public class BatchOptimizedAuditProcessor extends AbstractAuditProcessor {
                 batches.add(batch);
             });
         }
-        return batches;
+        return batches.stream().toList();
     }
 
-    private Optional<Batch> findAvailableBatch(List<Batch> batches, Transaction transaction) {
+    private Optional<Batch> findAvailableBatch(PriorityQueue<Batch> batches, Transaction transaction) {
         return batches.stream()
                 .filter(batch -> batch.hasSpaceFor(transaction))
                 .findFirst();
